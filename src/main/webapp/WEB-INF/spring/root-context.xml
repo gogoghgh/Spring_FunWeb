@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+		
+	<!-- DB 연결 객체 3. dataSource ========================================================  -->
+	<bean id="dataSource" 
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		
+		<!-- log4jdbc를 위한 설정값 -->
+		<property name="driverClassName" 
+					value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy" />
+		<property name="url" 
+					value="jdbc:log4jdbc:mysql://localhost:3306/springdb" />
+					
+		<!-- 기존 설정값
+		<property name="driverClassName" 
+					value="com.mysql.cj.jdbc.Driver" />
+		<property name="url" 
+					value="jdbc:mysql://localhost:3306/springdb" />    -->
+		
+		<property name="username" 
+					value="root" />
+		<property name="password" 
+					value="1234" />
+	</bean>
+	<!-- DB 연결 객체 3. dataSource 끝-->
+	
+	
+	
+	<!-- MyBatis 연동 2. SqlSessionFactory ========================================================   -->
+	<bean id="sqlSessionFactory" 
+			class="org.mybatis.spring.SqlSessionFactoryBean">
+			
+			<!-- 바로 위에 1. DB 연결 객체 주입하기!!
+				SqlSessionFactoryBean.class 가보니까,,,
+				setDataSource(DataSource dataSource) 이런 형태임,, 
+					value가 아니라 reference로!! 왜냐,, 그 때 그 때 다르니까? value는 딱 고정값
+			 -->
+			<property name="dataSource" ref="dataSource" />
+			
+			
+			<!-- mybatis 관련 설정도 제어할 수 있어야 하니까,, 
+				주입하겠습니다,,,,^^ -->
+			<property name="configLocation" value="classpath:/mybatis-config.xml"/>
+<!-- 		<property name="configLocation" value="classpath:/"/> -->
+<!-- 												ㄴ == src/main/resources -->
+			
+			<!-- mapper 설정 -->
+			<property name="mapperLocations" 
+						value="classpath:mappers/**/*Mapper.xml" />
+				<!-- mappers라는 폴더 밑의 모~~든 폴더에 관해 검색할건데 -> 이름이 ~~mapper.xml 이어야 한다~~ -->
+	</bean>
+	<!-- MyBatis 연동 2. SqlSessionFactory 끝 -->
+
+
+
+	<!-- DB 연동(MyBatis) + 자원 해제 1. SqlSessionTemplate ==============================================   -->
+	<bean id="sqlSession" 
+			class="org.mybatis.spring.SqlSessionTemplate"
+			destroy-method="clearCache">
+				<!-- 객체 안에 있는 set 메서드를 호출하는 게 property였고,,,
+					생성자(constructor) 안에 매개변수(arguments)를 넣어서 호출하겠다~~ -->
+			<constructor-arg name="sqlSessionFactory" ref="sqlSessionFactory"> 
+										<!-- 바로 위에 2. sqlSessionFactory(MyBatis 연동) 객체 주입^^ -->
+			
+			</constructor-arg>
+	</bean>
+	<!-- DB 연동(MyBatis) + 자원 해제 1. SqlSessionTemplate 끝 -->
+		
+		
+		
+</beans>
